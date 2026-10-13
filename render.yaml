@@ -1,0 +1,43 @@
+# render.yaml - Render Blueprint for Telegram MegaPay Subscription Bot
+# Deploy with 1-click on https://render.com
+
+services:
+  - type: web
+    name: campus-vip-megapay-bot
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.8
+      - key: DATABASE_URL
+        fromDatabase:
+          name: campus-vip-postgres
+          property: connectionString
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: CHANNEL_CHAT_ID
+        sync: false
+      - key: BOT_PUBLIC_USERNAME
+        value: CampusVIPbot
+      - key: CALLBACK_BASE_URL
+        sync: false
+      - key: MEGAPAY_API_KEY
+        sync: false
+      - key: MEGAPAY_EMAIL
+        sync: false
+      - key: MEGAPAY_CALLBACK_PATH
+        value: /pay/cb/e3d81b49f62c7a05d891e42b3c6a5d7e
+      - key: TIMEZONE
+        value: Africa/Nairobi
+
+databases:
+  - name: campus-vip-postgres
+    region: oregon
+    plan: free
+    databaseName: telebot_db
+    user: botuser
