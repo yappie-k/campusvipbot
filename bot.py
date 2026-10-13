@@ -280,7 +280,7 @@ async def text_message_handler(update: Update, context: ContextTypes.DEFAULT_TYP
         )
 
 
-async def generate_single_use_invite_link(bot: Application.bot, user_id: int) -> str:
+async def generate_single_use_invite_link(bot_client, user_id: int) -> str:
     try:
         expire_timestamp = datetime.now(timezone.utc) + timedelta(hours=INVITE_LINK_TTL_HOURS)
         invite = await bot.create_chat_invite_link(
