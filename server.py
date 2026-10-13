@@ -56,6 +56,12 @@ async def health_check():
     }
 
 
+# 🌟 THE CORRECTION: This tells your app to listen exactly on your secret link path
+@app.post(MEGAPAY_CALLBACK_PATH)
+async def mpesa_webhook(request: Request) -> JSONResponse:
+    return await process_megapay_webhook_payload(request)
+
+
 async def process_megapay_webhook_payload(request: Request) -> JSONResponse:
     try:
         raw_body_bytes = await request.body()
@@ -205,41 +211,30 @@ async def process_megapay_webhook_payload(request: Request) -> JSONResponse:
             )
 
             if telegram_bot:
+                # 🌟 THE CORRECTION: Safely handles payment cancellations/failures with clean text
                 try:
-                    fail_msg = (
-                        "❌ **M-Pesa Payment Unsuccessful**\n\n"
-                        f"Reason: _{response_desc}_\n\n"
-                        "No funds were deducted. Select a plan below to try again:"
+                    failure_msg = (
+                        "❌ **M-PESA TRANSACTION NOT COMPLETED**\n\n"
+                        f"Your checkout request for plan **{tx.plan_code}** did not go through.\n"
+                        f"⚠️ **Reason:** `{response_desc}`\n\n"
+                        "Please verify your wallet balance and run /start to try again."
                     )
                     await telegram_bot.send_message(
                         chat_id=tx.telegram_id,
-                        text=fail_msg,
-                        reply_markup=build_plans_keyboard(),
+                        text=failure_msg,
                         parse_mode=ParseMode.MARKDOWN,
                     )
                 except Exception as send_err:
-                    logger.error("Failed to send failure DM to user %d: %s", tx.telegram_id, send_err)
+                    logger.error("Failed to send failure alert DM to user %d: %s", tx.telegram_id, send_err)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"status": "success", "message": "Webhook processed successfully"},
+            content={"status": "success", "message": "Callback processed completely"}
         )
 
-    except Exception as exc:
-        logger.error("Unhandled error processing MegaPay webhook: %s", exc, exc_info=True)
+    except Exception as global_err:
+        logger.error("Unhandled critical error inside webhook loop: %s", global_err)
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"status": "error", "message": "Internal error logged"},
+            content={"status": "error", "message": "Internal gateway error"}
         )
-
-
-@app.post(MEGAPAY_CALLBACK_PATH)
-async def custom_megapay_callback_route(request: Request):
-    return await process_megapay_webhook_payload(request)
-
-
-@app.post("/pay/callback")
-@app.post("/api/mpesa/callback")
-@app.post("/api/megapay/callback")
-async def fallback_megapay_callback_route(request: Request):
-    return await process_megapay_webhook_payload(request)
