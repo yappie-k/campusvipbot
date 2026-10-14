@@ -18,7 +18,7 @@ class MegaPayClient:
         """Dispatches an M-Pesa STK Push request through MegaPay Gateway API."""
         settings = get_settings()
         
-        # Dual fallback endpoint router mapping parameters
+        # 🌟 CORRECT OFFICIAL ENDPOINT ROUTE
         base_url = "https://megapay.co.ke"
         
         callback_path = getattr(settings, "mpesa_callback_path", "/pay/cb/e3d81b49f62c7a05d891e42b3c6a5d7e")
@@ -29,36 +29,22 @@ class MegaPayClient:
             "Accept": "application/json"
         }
         
-        # 🌟 UNIVERSAL DUAL EMBED MATRIX PAYLOAD: Supplies all standard variable layout formats simultaneously!
         payload = {
             "api_key": settings.megapay_api_key,
             "email": settings.megapay_email,
             "amount": int(amount),
-            
-            # Handles different mobile phone number structural keys
             "msisdn": str(phone),
-            "phone": str(phone),
-            "phoneNumber": str(phone),
-            
-            # Handles different unique billing reference structural keys
-            "transaction_reference": str(account_ref),
-            "account_ref": str(account_ref),
-            "account_reference": str(account_ref),
             "reference": str(account_ref),
-            
-            # Handles different backend path reporting keys
-            "callback_url": str(callback_url),
-            "callbackUrl": str(callback_url)
+            "callback_url": str(callback_url)
         }
         
-        logger.info(f"Dispatching clean checkout parameters to sandbox gateway matrix: {account_ref}")
+        logger.info(f"Dispatching clean checkout parameters to gateway: {account_ref} for KES {amount}")
         
         async with httpx.AsyncClient(timeout=30.0) as client:
             try:
                 res = await client.post(base_url, json=payload, headers=headers)
                 logger.info(f"MegaPay Response Code received: {res.status_code}")
                 
-                # If they return an error code or an HTML block page print details straight into logs
                 if res.status_code != 200:
                     logger.error(f"Gateway rejected connection block raw dump text data: {res.text}")
                     raise MpesaError(f"MegaPay STK trigger connection failed with status {res.status_code}")
@@ -66,26 +52,18 @@ class MegaPayClient:
                 response_data = res.json()
                 logger.info(f"MegaPay response decoded successfully: {response_data}")
                 
-                # Check for any success flags or unique transactional request codes inside parameters map fields
-                checkout_id = (
-                    response_data.get("transaction_request_id") or 
-                    response_data.get("CheckoutRequestID") or
-                    response_data.get("request_id") or
-                    response_data.get("id")
-                )
-                
-                if response_data.get("status") in ("success", "completed", "pending") or checkout_id:
+                # Check for successful response parameters map fields
+                if response_data.get("success") == "200" or "transaction_request_id" in response_data:
+                    checkout_id = response_data.get("transaction_request_id")
                     if not checkout_id:
-                        # Fallback placeholder to maintain execution flows if the gateway lacks a key
-                        checkout_id = f"MOCK_TX_{int(datetime.utcnow().timestamp())}"
+                        raise MpesaError("Missing transaction_request_id reference inside success payload.")
                     return {"CheckoutRequestID": checkout_id}
                 else:
-                    raise MpesaError(response_data.get("message", "Unknown MegaPay gateway failure response logic."))
+                    raise MpesaError(response_data.get("massage") or response_data.get("message", "Unknown MegaPay failure response."))
                     
             except httpx.RequestError as net_err:
                 raise MpesaError(f"Failed to communicate with MegaPay servers: {str(net_err)}")
             except ValueError:
-                # If parsing fails look into the logs to see the exact text details MegaPay sent us
                 logger.error(f"JSON structure extraction failed. Content received: {res.text}")
                 raise MpesaError("Received empty or corrupt data block stream response envelope from payment gateway broker.")
             except Exception as e:
