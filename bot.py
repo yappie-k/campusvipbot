@@ -26,7 +26,7 @@ from database import (
     session_scope,
     upsert_user,
 )
-from mpesa import MpesaError, mask_msisdn, mpesa_client, normalize_msisdn
+from megapay import MpesaError, mask_msisdn, mpesa_client, normalize_msisdn
 
 logger = logging.getLogger(__name__)
 
