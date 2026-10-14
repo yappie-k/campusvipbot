@@ -18,7 +18,7 @@ class MegaPayClient:
         """Dispatches an M-Pesa STK Push request through MegaPay Gateway API."""
         settings = get_settings()
         
-        # 🌟 CORRECT OFFICIAL ENDPOINT ROUTE
+        # 🌟 Documented Official Production API Route Endpoint
         base_url = "https://megapay.co.ke"
         
         callback_path = getattr(settings, "mpesa_callback_path", "/pay/cb/e3d81b49f62c7a05d891e42b3c6a5d7e")
@@ -29,10 +29,11 @@ class MegaPayClient:
             "Accept": "application/json"
         }
         
+        # 🌟 FIXED PAYLOAD SCHEMA: Exactly mirrors MegaPay's documented parameters keys
         payload = {
             "api_key": settings.megapay_api_key,
             "email": settings.megapay_email,
-            "amount": int(amount),
+            "amount": str(amount),
             "msisdn": str(phone),
             "reference": str(account_ref),
             "callback_url": str(callback_url)
