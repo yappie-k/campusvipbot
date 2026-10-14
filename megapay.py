@@ -29,17 +29,17 @@ class MegaPayClient:
             "Accept": "application/json"
         }
         
-        # 🌟 FIXED PAYLOAD SCHEMA: Exactly mirrors MegaPay's documented parameters keys
+        # 🌟 FIXED PAYLOAD: Enforces absolute mathematical integer formatting on the amount field
         payload = {
-            "api_key": settings.megapay_api_key,
-            "email": settings.megapay_email,
-            "amount": str(amount),
+            "api_key": str(settings.megapay_api_key),
+            "email": str(settings.megapay_email),
+            "amount": int(amount),  # 🎯 strictly cast to a pure integer number block
             "msisdn": str(phone),
             "reference": str(account_ref),
             "callback_url": str(callback_url)
         }
         
-        logger.info(f"Dispatching clean checkout parameters to gateway: {account_ref} for KES {amount}")
+        logger.info(f"Dispatching pure integer parameter token to gateway: {account_ref} for KES {int(amount)}")
         
         async with httpx.AsyncClient(timeout=30.0) as client:
             try:
@@ -53,7 +53,6 @@ class MegaPayClient:
                 response_data = res.json()
                 logger.info(f"MegaPay response decoded successfully: {response_data}")
                 
-                # Check for successful response parameters map fields
                 if response_data.get("success") == "200" or "transaction_request_id" in response_data:
                     checkout_id = response_data.get("transaction_request_id")
                     if not checkout_id:
