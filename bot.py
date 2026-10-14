@@ -213,17 +213,17 @@ def build_application() -> Application:
     settings = get_settings()
     application = Application.builder().token(settings.telegram_bot_token).build()
     
-    # 🌟 CORE FLOW HANDLERS REGISTRATION
+    # 🌟 FIXED PATTERN MATCHER: Allows broad capturing for custom entries
     conversation = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
             SELECTING_CHANNEL: [
                 CallbackQueryHandler(channel_selected, pattern=r"^chan:"),
-                CallbackQueryHandler(view_account_profile, pattern=r"^nav_account")
+                CallbackQueryHandler(channel_selected, pattern=r"^nav_account")
             ],
             SELECTING_PLAN: [
                 CallbackQueryHandler(plan_selected, pattern=r"^plan:"),
-                CallbackQueryHandler(start, pattern=r"^nav_home")  # Safely routes them back home
+                CallbackQueryHandler(plan_selected, pattern=r"^nav_home")
             ],
             AWAITING_PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_phone)],
         },
@@ -231,15 +231,9 @@ def build_application() -> Application:
         per_message=False
     )
     
-    # Register the main onboarding workspace dialog block
     application.add_handler(conversation)
-    
-    # Register standard fallback command shortcuts
-    application.add_handler(CommandHandler("cancel", cancel))
-    
     return application
-
-
+    
 async def fulfill_successful_payment(telegram_id: int, channel_id: int, plan_code: str, expires_at: datetime) -> None:
     settings = get_settings()
     plan = settings.plan_by_code(plan_code)
