@@ -1,73 +1,126 @@
-"""Application Entrance Coordinator Bootstrapper Engine."""
-from __future__ import annotations
+"""
+main.py - Master Application Entry Point
+
+Coordinates the entire lifecycle inside a single unified asyncio event loop:
+1. Initializes Database schema (PostgreSQL for Render / SQLite fallback).
+2. Initializes python-telegram-bot v20+ polling engine.
+3. Injects shared Telegram Bot instance into FastAPI webhook server.
+4. Starts APScheduler background expulsion worker.
+5. Runs Uvicorn ASGI HTTP Server binding to Render's $PORT or 8000.
+6. Handles graceful teardown on SIGINT/SIGTERM.
+"""
 
 import asyncio
-import logging
+import signal
 import sys
 import uvicorn
 
-from config import get_settings
-from database import init_db
-from bot import build_application
-from server import app as fastapi_app
-from scheduler import start_scheduler, stop_scheduler
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)],
+from config import (
+    HTTP_HOST,
+    SERVER_PORT,
+    MEGAPAY_CALLBACK_PATH,
+    WEBHOOK_PUBLIC_URL,
+    logger,
 )
-logger = logging.getLogger(__name__)
+from database import init_db, engine
+from bot import create_telegram_bot_app
+from server import app as fastapi_app, set_shared_bot_instance
+from scheduler import start_expulsion_scheduler
 
 
-async def run() -> None:
-    settings = get_settings()
-    logger.info(
-        f"Initializing multi-threaded architectural bot loops running on "
-        f"MegaPay engine framework integration layer... "
-        f"Target token: {settings.telegram_bot_token[:10]}..."
-    )
+async def run_application():
+    logger.info("=====================================================")
+    logger.info("Starting Campus VIP MegaPay Subscription Service")
+    logger.info("=====================================================")
 
-    # 1. Initialize SQLite Database storage schemas tables
-    await init_db()
-    logger.info("Database schemas fully synchronized.")
+    try:
+        await init_db()
+    except Exception as e:
+        logger.critical("Database initialization failed: %s", e)
+        sys.exit(1)
 
-    # 2. Extract and mount the long polling bot instance engine
-    tg_application = build_application()
+    try:
+        ptb_app = create_telegram_bot_app()
+        await ptb_app.initialize()
+        await ptb_app.start()
+        await ptb_app.updater.start_polling(drop_pending_updates=True)
+        bot_info = await ptb_app.bot.get_me()
+        logger.info("Telegram Bot connected successfully as @%s (ID: %d)", bot_info.username, bot_info.id)
+    except Exception as e:
+        logger.critical("Failed to start Telegram Bot: %s", e)
+        sys.exit(1)
 
-    # 3. Start background scheduler clocks loops
-    start_scheduler()
+    set_shared_bot_instance(ptb_app.bot)
 
-    # 4. Bind bot handlers pipelines
-    await tg_application.initialize()
-    await tg_application.start()
-    await tg_application.updater.start_polling()
-    logger.info("Telegram polling loop listeners active.")
+    scheduler = start_expulsion_scheduler(ptb_app.bot)
 
-    # 5. Bring up ASGI webserver endpoint parameters listener gateway
     uvicorn_config = uvicorn.Config(
         app=fastapi_app,
-        host=settings.http_host,
-        port=settings.http_port,
+        host=HTTP_HOST,
+        port=SERVER_PORT,
         log_level="info",
+        access_log=True,
     )
-    uvicorn_server = uvicorn.Server(uvicorn_config)
+    server = uvicorn.Server(uvicorn_config)
+
+    stop_event = asyncio.Event()
+
+    def signal_handler():
+        logger.info("Shutdown signal received. Initiating graceful teardown...")
+        stop_event.set()
+        server.should_exit = True
+
+    loop = asyncio.get_running_loop()
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        try:
+            loop.add_signal_handler(sig, signal_handler)
+        except NotImplementedError:
+            pass
+
+    logger.info("FastAPI Webhook Server listening on http://%s:%d", HTTP_HOST, SERVER_PORT)
+    logger.info("MegaPay Webhook route mounted at POST %s", MEGAPAY_CALLBACK_PATH)
+    logger.info("Target Webhook URL for MegaPay Dashboard: %s", WEBHOOK_PUBLIC_URL)
+    logger.info("Application is fully initialized and operational.")
+
+    server_task = asyncio.create_task(server.serve())
 
     try:
-        await uvicorn_server.serve()
+        await server_task
+    except asyncio.CancelledError:
+        logger.info("Server task cancelled.")
     finally:
-        logger.info("De-initializing background operational threads safely...")
-        await tg_application.updater.stop()
-        await tg_application.stop()
-        await tg_application.shutdown()
-        stop_scheduler()
+        logger.info("Cleaning up application components...")
+
+        try:
+            scheduler.shutdown(wait=False)
+            logger.info("APScheduler stopped.")
+        except Exception as e:
+            logger.error("Error shutting down scheduler: %s", e)
+
+        try:
+            if ptb_app.updater and ptb_app.updater.running:
+                await ptb_app.updater.stop()
+            if ptb_app.running:
+                await ptb_app.stop()
+            await ptb_app.shutdown()
+            logger.info("Telegram Bot polling stopped and engine shut down.")
+        except Exception as e:
+            logger.error("Error stopping Telegram Bot: %s", e)
+
+        try:
+            await engine.dispose()
+            logger.info("Database engine connections closed.")
+        except Exception as e:
+            logger.error("Error disposing database engine: %s", e)
+
+        logger.info("All services terminated cleanly. Goodbye!")
 
 
-def main() -> None:
+def main():
     try:
-        asyncio.run(run())
+        asyncio.run(run_application())
     except (KeyboardInterrupt, SystemExit):
-        logger.info("Asynchronous main pipeline loops safely shut down.")
+        logger.info("Process interrupted. Exiting.")
 
 
 if __name__ == "__main__":
