@@ -176,18 +176,14 @@ async def plan_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     
     if query.data == "nav_home":
         settings = get_settings()
-         # 🌟 STEP-TRACKING GRID INTERFACE LAYOUT
-    keyboard = [
-        [InlineKeyboardButton("📺❤️ SOMALIA PORN❤️", callback_data="chan:-1004338264708")],
-        [InlineKeyboardButton("❤️ EXPOSEE💦📺", callback_data="chan:-1004338264708:ch2")],
-        [InlineKeyboardButton("📺 TRENDING LEAKS🔞💦", callback_data="chan:-1004338264708:ch3")],
-        [InlineKeyboardButton("📺🔞 KENYAN PORN⛔", callback_data="chan:-1004338264708:ch4")],
-        [InlineKeyboardButton("💎 ALL OF THE ABOVE❤️💎", callback_data="chan:999999")],
-        [
-            InlineKeyboardButton("👤 My Account", callback_data="nav_account"),
-            InlineKeyboardButton("💬 Help Support", url=f"https://t.me{settings.support_admin_username}")
+        keyboard = [
+            [InlineKeyboardButton("📺❤️ SOMALIA PORN❤️", callback_data="chan:-1004338264708")],
+            [InlineKeyboardButton("❤️ EXPOSEE💦📺", callback_data="chan:-1004338264708:ch2")],
+            [InlineKeyboardButton("📺 TRENDING LEAKS🔞💦", callback_data="chan:-1004338264708:ch3")],
+            [InlineKeyboardButton("📺🔞 KENYAN PORN⛔", callback_data="chan:-1004338264708:ch4")],
+            [InlineKeyboardButton("💎 ALL OF THE ABOVE❤️💎", callback_data="chan:999999")],
+            [InlineKeyboardButton("👤 My Account", callback_data="nav_account"), InlineKeyboardButton("💬 Help Support", url=f"https://t.me{settings.support_admin_username}")]
         ]
-    ]
         await query.edit_message_text(text="Select an independent Premium Channel or choose the **All-Access Bundle** to proceed: 👇", reply_markup=InlineKeyboardMarkup(keyboard))
         return SELECTING_CHANNEL
 
@@ -209,7 +205,6 @@ async def plan_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         parse_mode=ParseMode.MARKDOWN,
     )
     return AWAITING_PHONE
-
 
 async def receive_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     message = update.message
