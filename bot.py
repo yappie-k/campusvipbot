@@ -55,7 +55,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     async with session_scope() as session:
         await upsert_user(session, user.id, user.username, user.first_name)
 
-    # 🌟 FIXED BUTTON CALLOUT VALUES: Straight tags so the engine can differentiate buttons instantly
+    # 🌟 CORE TRACKED WALK THROUGH GRID MENUS
     keyboard = [
         [InlineKeyboardButton("📺❤️ SOMALIA PORN❤️", callback_data="chan:ch1")],
         [InlineKeyboardButton("❤️ EXPOSEE💦📺", callback_data="chan:ch2")],
@@ -79,6 +79,25 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return SELECTING_CHANNEL
 
 
+async def view_account_profile(query) -> None:
+    """Queries active database subscription records to compile real-time membership listings."""
+    user_id = query.from_user.id
+    
+    async with session_scope() as session:
+        active_subs = await get_all_user_subscriptions(session, user_id)
+        
+    profile_text = "👤 **YOUR MEMBERSHIP ACCOUNT PROFILE**\n\n"
+    if not active_subs:
+        profile_text += "❌ You do not have any active Premium Subscriptions at the moment."
+    else:
+        profile_text += "✅ You currently have active access to premium channels.\n\n"
+        for sub in active_subs:
+            profile_text += f"▪️ Subscription Plan: `{sub.plan_code}`\n   ⏱️ Expires: `{_format_expiry(sub.expires_at)}`\n\n"
+            
+    keyboard = [[InlineKeyboardButton("⬅️ Back to Main Menu", callback_data="nav_home")]]
+    await query.edit_message_text(text=profile_text, parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(keyboard))
+
+
 async def channel_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     if query is None or query.data is None:
@@ -92,7 +111,7 @@ async def channel_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     # Separate out the chan prefix token
     target = query.data.split(":", 1)[1]
     
-    # 🌟 CORE IMAGE MATCHED PRICING ROUTER 
+    # 🌟 CORE IMAGE MATCHED PRICING ROUTER
     if target == "999999":
         context.user_data["target_channel_id"] = 999999
         rows = [
@@ -184,6 +203,13 @@ async def plan_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     )
     return AWAITING_PHONE
 
+
+async def receive_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    message = update.message
+    user = update.effective_user
+    if message is None or user is None or message.text is None:
+        return AWAITING_PHONE
+
     plan_code = context.user_data.get("plan_code")
     channel_id = context.user_data.get("target_channel_id")
     
@@ -198,9 +224,14 @@ async def plan_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
     await message.reply_text(f"🔄 Dispatched an M-Pesa push prompt token to screen {mask_msisdn(phone)}. Complete authorization by keying in your PIN code.")
     try:
-        amount_lookup = {"bun_1w": 499, "bun_1m": 1299, "bun_3m": 1999, "bun_lt": 2499}
+        amount_lookup = {
+            "bun_1w": 499, "bun_1m": 1299, "bun_3m": 1999, "bun_lt": 2499,
+            "ch1_1w": 199, "ch1_1m": 499, "ch1_3m": 999, "ch1_lt": 1299,
+            "ch2_1w": 399, "ch2_1m": 699, "ch2_3m": 999, "ch2_lt": 1499,
+            "ch3_1w": 399, "ch3_1m": 699, "ch3_3m": 1299, "ch3_lt": 1999,
+            "ch4_1w": 199, "ch4_1m": 499, "ch4_3m": 999, "ch4_lt": 1499,
+        }
         amount = amount_lookup.get(plan_code, 699)
-        
         resp = await mpesa_client.trigger_stk_push(phone=phone, amount=amount, account_ref=f"SUB{user.id}")
         async with session_scope() as session:
             await create_pending_payment(session=session, telegram_id=user.id, channel_id=channel_id, plan_code=plan_code, phone=phone, checkout_id=resp["CheckoutRequestID"])
@@ -213,6 +244,13 @@ async def plan_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         return ConversationHandler.END
 
     context.user_data.clear()
+    return ConversationHandler.END
+
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    context.user_data.clear()
+    if update.message:
+        await update.message.reply_text("Cancelled. Send /start when you are ready to subscribe.")
     return ConversationHandler.END
 
 
@@ -247,7 +285,6 @@ async def fulfill_successful_payment(telegram_id: int, channel_id: int, plan_cod
     
     async with Bot(token=settings.telegram_bot_token) as bot_client:
         try:
-            # 👑 BUNDLE LOGIC UNLOCKER: Generate single-use join keys
             if channel_id == 999999:
                 success_msg = f"👑 **ALL-ACCESS VIP BUNDLE PURCHASE CONFIRMED!** 🎉\n\nYour master membership is active. Use your private single-use invite link below to enter the channel community:\n\n"
                 link_obj = await bot_client.create_chat_invite_link(chat_id=-1004338264708, member_limit=1, expire_date=datetime.now(timezone.utc) + timedelta(hours=settings.invite_link_ttl_hours))
@@ -257,7 +294,7 @@ async def fulfill_successful_payment(telegram_id: int, channel_id: int, plan_cod
                 invite_link_obj = await bot_client.create_chat_invite_link(chat_id=-1004338264708, member_limit=1, expire_date=datetime.now(timezone.utc) + timedelta(hours=settings.invite_link_ttl_hours))
                 await bot_client.send_message(
                     chat_id=telegram_id,
-                    text=f"✅ *Payment Confirmed!*\n\nYour subscription for plan code *{plan_code}* is now active.\n\n🔗 *Single-use Join Link:* {invite_link_obj.invite_link}\n⏰ *Access Expires:* `{expiry_str}`\n\n_Note: Links are strictly single-use and valid for 24 hours._",
+                    text=f"✅ *Payment Confirmed!*\n\nYour subscription for plan code *{plan_code.upper()}* is now active.\n\n🔗 *Single-use Join Link:* {invite_link_obj.invite_link}\n⏰ *Access Expires:* `{expiry_str}`\n\n_Note: Links are strictly single-use and valid for 24 hours._",
                     parse_mode=ParseMode.MARKDOWN
                 )
         except TelegramError as e:
@@ -268,13 +305,6 @@ async def notify_failed_payment(telegram_id: int, plan_code: str, reason: str) -
     settings = get_settings()
     async with Bot(token=settings.telegram_bot_token) as bot_client:
         try:
-            await bot_client.send_message(chat_id=telegram_id, text=f"❌ *M-Pesa Payment Failed*\n\nYour transaction setup for *{plan_code}* was cancelled.\n⚠️ *Reason:* `{reason}`\n\nRun /start to retry.", parse_mode=ParseMode.MARKDOWN)
+            await bot_client.send_message(chat_id=telegram_id, text=f"❌ *M-Pesa Payment Failed*\n\nYour transaction setup for *{plan_code.upper()}* was cancelled.\n⚠️ *Reason:* `{reason}`\n\nRun /start to retry.", parse_mode=ParseMode.MARKDOWN)
         except TelegramError:
             pass
-
-
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data.clear()
-    if update.message:
-        await update.message.reply_text("Cancelled. Send /start when you are ready to subscribe.")
-    return ConversationHandler.END
