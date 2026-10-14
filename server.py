@@ -10,6 +10,10 @@ from database import activate_subscription_from_payment, get_payment_by_checkout
 logger = logging.getLogger(__name__)
 app = FastAPI(title="MegaPay Automated Webhook Endpoint")
 
+@app.api_route("/health", methods=["GET", "HEAD"])
+async def health():
+    return {"status": "ok"}
+    
 @app.post("/pay/cb/e3d81b49f62c7a05d891e42b3c6a5d7e")
 async def mpesa_webhook(request: Request):
     """Processes instant payment notification records dispatched via MegaPay."""
