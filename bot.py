@@ -55,7 +55,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     async with session_scope() as session:
         await upsert_user(session, user.id, user.username, user.first_name)
 
-    # 🌟 MAIN PORTAL ACCESS INTERFACE GRID
     keyboard = [
         [InlineKeyboardButton("📺❤️ SOMALIA PORN❤️", callback_data="chan:ch1")],
         [InlineKeyboardButton("❤️ EXPOSEE💦📺", callback_data="chan:ch2")],
@@ -80,7 +79,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 async def view_account_profile(query) -> None:
-    """Queries active database subscription records to compile real-time membership listings."""
     user_id = query.from_user.id
     
     async with session_scope() as session:
@@ -92,7 +90,7 @@ async def view_account_profile(query) -> None:
     else:
         profile_text += "✅ You currently have active access to premium channels.\n\n"
         for sub in active_subs:
-            profile_text += f"▪️ Subscription Plan: `{sub.plan_code.upper()}`\n   ⏱️ Expires: `{_format_expiry(sub.expires_at)}`\n\n"
+            profile_text += f"▪️ Subscription Plan: `{str(sub.plan_code).upper()}`\n   ⏱️ Expires: `{_format_expiry(sub.expires_at)}`\n\n"
             
     keyboard = [[InlineKeyboardButton("⬅️ Back to Main Menu", callback_data="nav_home")]]
     await query.edit_message_text(text=profile_text, parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(keyboard))
@@ -108,50 +106,47 @@ async def channel_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await view_account_profile(query)
         return SELECTING_CHANNEL
 
-    # 🌟 FIXED: Flatten list array directly to a clean string string token using [1]
     target = query.data.split(":", 1)[1]
     
-    # 🌟 CORE IMAGE MATCHED PRICING ROUTER
     if target == "999999":
         context.user_data["target_channel_id"] = 999999
         rows = [
-            [InlineKeyboardButton("📅 1 Week — 7 days | 499 KSHS", callback_data="plan:bun_1w")],
-            [InlineKeyboardButton("📅 1 MONTH — 30 days | 1299 KSHS", callback_data="plan:bun_1m")],
-            [InlineKeyboardButton("📅 3 MONTHS — 90 days | 1999 KSHS", callback_data="plan:bun_3m")],
-            [InlineKeyboardButton("📅 LIFETIME | 2499 KSHS", callback_data="plan:bun_lt")]
+            [InlineKeyboardButton("📅 1 Week — 7 days | 499 KSHS", callback_data="plan:bun_1w:499")],
+            [InlineKeyboardButton("📅 1 MONTH — 30 days | 1299 KSHS", callback_data="plan:bun_1m:1299")],
+            [InlineKeyboardButton("📅 3 MONTHS — 90 days | 1999 KSHS", callback_data="plan:bun_3m:1999")],
+            [InlineKeyboardButton("📅 LIFETIME | 2499 KSHS", callback_data="plan:bun_lt:2499")]
         ]
     elif target == "ch1":
         context.user_data["target_channel_id"] = -1004338264708
         rows = [
-            [InlineKeyboardButton("📅 1 Week — 7 days | 199 KSHS", callback_data="plan:ch1_1w")],
-            [InlineKeyboardButton("📅 1 MONTH — 30 days | 499 KSHS", callback_data="plan:ch1_1m")],
-            [InlineKeyboardButton("📅 3 MONTHS — 90 days | 999 KSHS", callback_data="plan:ch1_3m")],
-            [InlineKeyboardButton("📅 LIFETIME | 1299 KSHS", callback_data="plan:ch1_lt")]
+            [InlineKeyboardButton("📅 1 Week — 7 days | 199 KSHS", callback_data="plan:ch1_1w:199")],
+            [InlineKeyboardButton("📅 1 MONTH — 30 days | 499 KSHS", callback_data="plan:ch1_1m:499")],
+            [InlineKeyboardButton("📅 3 MONTHS — 90 days | 999 KSHS", callback_data="plan:ch1_3m:999")],
+            [InlineKeyboardButton("📅 LIFETIME | 1299 KSHS", callback_data="plan:ch1_lt:1299")]
         ]
     elif target == "ch2":
         context.user_data["target_channel_id"] = -1004338264708
         rows = [
-            [InlineKeyboardButton("📅 1 Week — 7 days | 399 KSHS", callback_data="plan:ch2_1w")],
-            [InlineKeyboardButton("📅 1 MONTH — 30 days | 699 KSHS", callback_data="plan:ch2_1m")],
-            [InlineKeyboardButton("📅 3 MONTHS — 90 days | 999 KSHS", callback_data="plan:ch2_3m")],
-            [InlineKeyboardButton("📅 LIFETIME | 1499 KSHS", callback_data="plan:ch2_lt")]
+            [InlineKeyboardButton("📅 1 Week — 7 days | 399 KSHS", callback_data="plan:ch2_1w:399")],
+            [InlineKeyboardButton("📅 1 MONTH — 30 days | 699 KSHS", callback_data="plan:ch2_1m:699")],
+            [InlineKeyboardButton("📅 3 MONTHS — 90 days | 999 KSHS", callback_data="plan:ch2_3m:999")],
+            [InlineKeyboardButton("📅 LIFETIME | 1499 KSHS", callback_data="plan:ch2_lt:1499")]
         ]
     elif target == "ch4":
         context.user_data["target_channel_id"] = -1004338264708
         rows = [
-            [InlineKeyboardButton("📅 1 Week — 7 days | 199 KSHS", callback_data="plan:ch4_1w")],
-            [InlineKeyboardButton("📅 1 MONTH — 30 days | 499 KSHS", callback_data="plan:ch4_1m")],
-            [InlineKeyboardButton("📅 3 MONTHS — 90 days | 999 KSHS", callback_data="plan:ch4_3m")],
-            [InlineKeyboardButton("📅 LIFETIME | 1499 KSHS", callback_data="plan:ch4_lt")]
+            [InlineKeyboardButton("📅 1 Week — 7 days | 199 KSHS", callback_data="plan:ch4_1w:199")],
+            [InlineKeyboardButton("📅 1 MONTH — 30 days | 499 KSHS", callback_data="plan:ch4_1m:499")],
+            [InlineKeyboardButton("📅 3 MONTHS — 90 days | 999 KSHS", callback_data="plan:ch4_3m:999")],
+            [InlineKeyboardButton("📅 LIFETIME | 1499 KSHS", callback_data="plan:ch4_lt:1499")]
         ]
     else:
-        # Default target fallback (📺 TRENDING LEAKS🔞💦)
         context.user_data["target_channel_id"] = -1004338264708
         rows = [
-            [InlineKeyboardButton("📅 1 Week — 7 days | 399 KSHS", callback_data="plan:ch3_1w")],
-            [InlineKeyboardButton("📅 1 MONTH — 30 days | 699 KSHS", callback_data="plan:ch3_1m")],
-            [InlineKeyboardButton("📅 3 MONTHS — 90 days | 1299 KSHS", callback_data="plan:ch3_3m")],
-            [InlineKeyboardButton("📅 LIFETIME | 1999 KSHS", callback_data="plan:ch3_lt")]
+            [InlineKeyboardButton("📅 1 Week — 7 days | 399 KSHS", callback_data="plan:ch3_1w:399")],
+            [InlineKeyboardButton("📅 1 MONTH — 30 days | 699 KSHS", callback_data="plan:ch3_1m:699")],
+            [InlineKeyboardButton("📅 3 MONTHS — 90 days | 1299 KSHS", callback_data="plan:ch3_3m:1299")],
+            [InlineKeyboardButton("📅 LIFETIME | 1999 KSHS", callback_data="plan:ch3_lt:1999")]
         ]
         
     rows.append([InlineKeyboardButton("⬅️ Back to Main Menu", callback_data="nav_home")])
@@ -184,9 +179,12 @@ async def plan_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         await query.edit_message_text(text="Select an independent Premium Channel or choose the **All-Access Bundle** to proceed: 👇", reply_markup=InlineKeyboardMarkup(keyboard))
         return SELECTING_CHANNEL
 
-    # 🌟 FIXED: Flatten list array directly to a clean string string token using [1]
-    code = query.data.split(":", 1)[1]
-    context.user_data["plan_code"] = code
+    parts = query.data.split(":")
+    plan_code = parts[1]
+    amount = int(parts[2])
+    
+    context.user_data["plan_code"] = plan_code
+    context.user_data["billing_amount"] = amount
     hint = ""
     user = update.effective_user
     if user:
@@ -196,7 +194,7 @@ async def plan_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
                 hint = f"\nLast number on file: `{mask_msisdn(db_user.phone)}`"
 
     await query.edit_message_text(
-        f"Selected Pack Reference: *{code.upper()}*\n\n"
+        f"Selected Pack Reference: *{str(plan_code).upper()}*\n\n"
         "Please enter your M-Pesa phone number to trigger your checkout STK Push prompt screen.\n"
         "Accepted format examples: `0712345678` or `254712345678`."
         f"{hint}\n\nSend /cancel to close menu.",
@@ -213,6 +211,7 @@ async def receive_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
     plan_code = context.user_data.get("plan_code")
     channel_id = context.user_data.get("target_channel_id")
+    amount = context.user_data.get("billing_amount", 499)
     
     if plan_code is None or channel_id is None:
         await message.reply_text("Session timeout. Please run /start to restart.")
@@ -222,19 +221,14 @@ async def receive_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     if phone is None:
         await message.reply_text("Invalid structure format. Supply a valid Kenyan mobile line number:")
         return AWAITING_PHONE
-    await message.reply_text(f"🔄 Dispatched an M-Pesa push prompt token to screen {mask_msisdn(phone)}. Complete authorization by keying in your PIN code.")
+
     try:
-        amount_lookup = {
-            "bun_1w": 499, "bun_1m": 1299, "bun_3m": 1999, "bun_lt": 2499,
-            "ch1_1w": 199, "ch1_1m": 499, "ch1_3m": 999, "ch1_lt": 1299,
-            "ch2_1w": 399, "ch2_1m": 699, "ch2_3m": 999, "ch2_lt": 1499,
-            "ch3_1w": 399, "ch3_1m": 699, "ch3_3m": 1299, "ch3_lt": 1999,
-            "ch4_1w": 199, "ch4_1m": 499, "ch4_3m": 999, "ch4_lt": 1499,
-        }
-        amount = amount_lookup.get(plan_code, 699)
-        resp = await mpesa_client.trigger_stk_push(phone=phone, amount=amount, account_ref=f"SUB{user.id}")
+        # 🌟 FIXED MESSAGE FLOW: Only alerts user AFTER the API call returns successfully
+        resp = await mpesa_client.trigger_stk_push(phone=phone, amount=int(amount), account_ref=f"SUB{user.id}")
         async with session_scope() as session:
-            await create_pending_payment(session=session, telegram_id=user.id, channel_id=channel_id, plan_code=plan_code, phone=phone, checkout_id=resp["CheckoutRequestID"])
+            await create_pending_payment(session=session, telegram_id=user.id, channel_id=channel_id, plan_code=str(plan_code), phone=phone, checkout_id=resp["CheckoutRequestID"])
+        
+        await message.reply_text(f"🔄 Dispatched an M-Pesa push prompt token to screen {mask_msisdn(phone)}. Complete authorization by keying in your PIN code.")
     except MpesaError as exc:
         await message.reply_text(f"Could not initialize mobile push: {exc}. Run /start to retry.")
         return ConversationHandler.END
@@ -294,8 +288,8 @@ async def fulfill_successful_payment(telegram_id: int, channel_id: int, plan_cod
                 invite_link_obj = await bot_client.create_chat_invite_link(chat_id=-1004338264708, member_limit=1, expire_date=datetime.now(timezone.utc) + timedelta(hours=settings.invite_link_ttl_hours))
                 await bot_client.send_message(
                     chat_id=telegram_id,
-                    text=f"✅ *Payment Confirmed!*\n\nYour subscription for plan code *{plan_code.upper()}* is now active.\n\n🔗 *Single-use Join Link:* {invite_link_obj.invite_link}\n⏰ *Access Expires:* `{expiry_str}`\n\n_Note: Links are strictly single-use and valid for 24 hours._",
-                    parse_mode=ParseMode.MARKDOWN
+                    text=f"✅ *Payment Confirmed!*\n\nYour subscription for plan code *{str(plan_code).upper()}* is now active.\n\n🔗 *Single-use Join Link:* {invite_link_obj.invite_link}\n⏰ *Access Expires:* `{expiry_str}`\n\n_Note: Links are strictly single-use and valid for 24 hours._",
+                    pass_mode=ParseMode.MARKDOWN
                 )
         except TelegramError as e:
             logger.error(f"Invite link generation error context: {e}")
@@ -305,6 +299,6 @@ async def notify_failed_payment(telegram_id: int, plan_code: str, reason: str) -
     settings = get_settings()
     async with Bot(token=settings.telegram_bot_token) as bot_client:
         try:
-            await bot_client.send_message(chat_id=telegram_id, text=f"❌ *M-Pesa Payment Failed*\n\nYour transaction setup for *{plan_code.upper()}* was cancelled.\n⚠️ *Reason:* `{reason}`\n\nRun /start to retry.", parse_mode=ParseMode.MARKDOWN)
+            await bot_client.send_message(chat_id=telegram_id, text=f"❌ *M-Pesa Payment Failed*\n\nYour transaction setup for *{str(plan_code).upper()}* was cancelled.\n⚠️ *Reason:* `{reason}`\n\nRun /start to retry.", parse_mode=ParseMode.MARKDOWN)
         except TelegramError:
             pass
