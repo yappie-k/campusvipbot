@@ -26,7 +26,7 @@ from database import (
     session_scope,
     upsert_user,
 )
-from mpesa import MpesaError, mask_msisdn, mpesa_client, normalize_msisdn
+from megapay import MpesaError, mask_msisdn, mpesa_client, normalize_msisdn
 
 logger = logging.getLogger(__name__)
 
@@ -89,12 +89,9 @@ async def channel_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await view_account_profile(query)
         return SELECTING_CHANNEL
 
-    # Dynamic pricing mapping profile cards
     target_data = query.data.split(":", 1)[1]
     
-    # 🌟 DISPLAY EXTRACTED PRICE OPTIONS MATCHING YOUR templates IMAGE
     if target_data == "999999":
-        # All of the above bundle plans card layout
         context.user_data["target_channel_id"] = 999999
         rows = [
             [InlineKeyboardButton("📅 1 Week — 7 days | 499 KSHS", callback_data="plan:bun_1w")],
@@ -103,7 +100,6 @@ async def channel_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             [InlineKeyboardButton("📅 LIFETIME | 2499 KSHS", callback_data="plan:bun_lt")]
         ]
     else:
-        # Standard channel routing template
         context.user_data["target_channel_id"] = -1004338264708
         rows = [
             [InlineKeyboardButton("📅 1 Week — 7 days | 399 KSHS", callback_data="plan:ch2_1w")],
@@ -124,7 +120,6 @@ async def channel_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 async def view_account_profile(query) -> None:
-    """Queries active database subscription records to compile real-time membership listings."""
     user_id = query.from_user.id
     
     async with session_scope() as session:
@@ -201,7 +196,6 @@ async def receive_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
     await message.reply_text(f"🔄 Dispatched an M-Pesa push prompt token to screen {mask_msisdn(phone)}. Complete authorization by keying in your PIN code.")
     try:
-        # Mock default pricing lookup index rules directly for checkout
         amount_lookup = {"bun_1w": 499, "bun_1m": 1299, "bun_3m": 1999, "bun_lt": 2499}
         amount = amount_lookup.get(plan_code, 699)
         
