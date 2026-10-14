@@ -213,18 +213,30 @@ def build_application() -> Application:
     settings = get_settings()
     application = Application.builder().token(settings.telegram_bot_token).build()
     
+    # 🌟 CORE FLOW HANDLERS REGISTRATION
     conversation = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            SELECTING_CHANNEL: [CallbackQueryHandler(channel_selected, pattern=r"^(chan:|nav_account)")],
-            SELECTING_PLAN: [CallbackQueryHandler(plan_selected, pattern=r"^(plan:|nav_home)")],
+            SELECTING_CHANNEL: [
+                CallbackQueryHandler(channel_selected, pattern=r"^chan:"),
+                CallbackQueryHandler(view_account_profile, pattern=r"^nav_account")
+            ],
+            SELECTING_PLAN: [
+                CallbackQueryHandler(plan_selected, pattern=r"^plan:"),
+                CallbackQueryHandler(start, pattern=r"^nav_home")  # Safely routes them back home
+            ],
             AWAITING_PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_phone)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
         per_message=False
     )
     
+    # Register the main onboarding workspace dialog block
     application.add_handler(conversation)
+    
+    # Register standard fallback command shortcuts
+    application.add_handler(CommandHandler("cancel", cancel))
+    
     return application
 
 
