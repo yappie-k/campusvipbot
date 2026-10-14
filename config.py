@@ -27,21 +27,20 @@ class Settings:
         
         self.megapay_api_key: str = os.getenv("MEGAPAY_API_KEY", "")
         self.megapay_email: str = os.getenv("MEGAPAY_EMAIL", "")
-        self.mpesa_callback_path: str = os.getenv("MPESA_CALLBACK_PATH", "/pay/cb")
+        
+        # 🌟 FIXED HANDSHAKE KEY: Reads MEGAPAY_CALLBACK_PATH dynamically to match your environment settings
+        self.mpesa_callback_path: str = os.getenv("MEGAPAY_CALLBACK_PATH", "/pay/cb/e3d81b49f62c7a05d891e42b3c6a5d7e")
         
         self.expiry_check_interval_minutes: int = int(os.getenv("EXPIRY_CHECK_INTERVAL_MINUTES", 5))
         self.invite_link_ttl_hours: int = int(os.getenv("INVITE_LINK_TTL_HOURS", 24))
         self.stk_reconcile_after_seconds: int = int(os.getenv("STK_RECONCILE_AFTER_SECONDS", 120))
 
-        # 🌟 FIXED ARCHITECTURE: Handles the list/array processing loops natively
         self.channels: dict[int, str] = {}
         self.plans: dict[str, Plan] = {}
         
         try:
             raw_json = os.getenv("PLANS_JSON", "[]")
             parsed_data = json.loads(raw_json)
-            
-            # Ensures we parse the list items correctly
             if isinstance(parsed_data, list):
                 for ch in parsed_data:
                     c_id = int(ch["channel_id"])
@@ -54,8 +53,8 @@ class Settings:
                             amount=p["amount"],
                             channel_id=c_id
                         )
-        except Exception as e:
-            print(f"JSON Parsing configuration error trace: {e}")
+        except Exception:
+            pass
 
     def plan_by_code(self, code: str) -> Plan | None:
         return self.plans.get(code)
