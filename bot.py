@@ -89,9 +89,12 @@ async def channel_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await view_account_profile(query)
         return SELECTING_CHANNEL
 
+    # Dynamic pricing mapping profile cards
     target_data = query.data.split(":", 1)[1]
     
+    # 🌟 IMAGES-MATCHED PRICING ROUTER MACHINE
     if target_data == "999999":
+        # 💎 ALL OF THE ABOVE❤️💎
         context.user_data["target_channel_id"] = 999999
         rows = [
             [InlineKeyboardButton("📅 1 Week — 7 days | 499 KSHS", callback_data="plan:bun_1w")],
@@ -99,13 +102,41 @@ async def channel_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             [InlineKeyboardButton("📅 3 MONTHS — 90 days | 1999 KSHS", callback_data="plan:bun_3m")],
             [InlineKeyboardButton("📅 LIFETIME | 2499 KSHS", callback_data="plan:bun_lt")]
         ]
-    else:
+    elif "SOMALIA" in query.message.text or target_data == "-1004338264708" and context.user_data.get("last_click") == "ch1":
+        # 📺❤️ SOMALIA PORN❤️
+        context.user_data["target_channel_id"] = -1004338264708
+        rows = [
+            [InlineKeyboardButton("📅 1 Week — 7 days | 199 KSHS", callback_data="plan:ch1_1w")],
+            [InlineKeyboardButton("📅 1 MONTH — 30 days | 499 KSHS", callback_data="plan:ch1_1m")],
+            [InlineKeyboardButton("📅 3 MONTHS — 90 days | 999 KSHS", callback_data="plan:ch1_3m")],
+            [InlineKeyboardButton("📅 LIFETIME | 1299 KSHS", callback_data="plan:ch1_lt")]
+        ]
+    elif context.user_data.get("last_click") == "ch2":
+        # ❤️ EXPOSEE💦📺
         context.user_data["target_channel_id"] = -1004338264708
         rows = [
             [InlineKeyboardButton("📅 1 Week — 7 days | 399 KSHS", callback_data="plan:ch2_1w")],
             [InlineKeyboardButton("📅 1 MONTH — 30 days | 699 KSHS", callback_data="plan:ch2_1m")],
-            [InlineKeyboardButton("📅 3 MONTHS — 90 days | 1299 KSHS", callback_data="plan:ch2_3m")],
-            [InlineKeyboardButton("📅 LIFETIME | 1999 KSHS", callback_data="plan:ch2_lt")]
+            [InlineKeyboardButton("📅 3 MONTHS — 90 days | 999 KSHS", callback_data="plan:ch2_3m")],
+            [InlineKeyboardButton("📅 LIFETIME | 1499 KSHS", callback_data="plan:ch2_lt")]
+        ]
+    elif context.user_data.get("last_click") == "ch4":
+        # 📺🔞 KENYAN PORN⛔
+        context.user_data["target_channel_id"] = -1004338264708
+        rows = [
+            [InlineKeyboardButton("📅 1 Week — 7 days | 199 KSHS", callback_data="plan:ch4_1w")],
+            [InlineKeyboardButton("📅 1 MONTH — 30 days | 499 KSHS", callback_data="plan:ch4_1m")],
+            [InlineKeyboardButton("📅 3 MONTHS — 90 days | 999 KSHS", callback_data="plan:ch4_3m")],
+            [InlineKeyboardButton("📅 LIFETIME | 1499 KSHS", callback_data="plan:ch4_lt")]
+        ]
+    else:
+        # 📺 TRENDING LEAKS🔞💦 (Fallback Default)
+        context.user_data["target_channel_id"] = -1004338264708
+        rows = [
+            [InlineKeyboardButton("📅 1 Week — 7 days | 399 KSHS", callback_data="plan:ch3_1w")],
+            [InlineKeyboardButton("📅 1 MONTH — 30 days | 699 KSHS", callback_data="plan:ch3_1m")],
+            [InlineKeyboardButton("📅 3 MONTHS — 90 days | 1299 KSHS", callback_data="plan:ch3_3m")],
+            [InlineKeyboardButton("📅 LIFETIME | 1999 KSHS", callback_data="plan:ch3_lt")]
         ]
         
     rows.append([InlineKeyboardButton("⬅️ Back to Main Menu", callback_data="nav_home")])
@@ -145,14 +176,18 @@ async def plan_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     
     if query.data == "nav_home":
         settings = get_settings()
-        keyboard = [
-            [InlineKeyboardButton("📺❤️ SOMALIA PORN❤️", callback_data="chan:-1004338264708")],
-            [InlineKeyboardButton("❤️ EXPOSEE💦📺", callback_data="chan:-1004338264708")],
-            [InlineKeyboardButton("📺 TRENDING LEAKS🔞💦", callback_data="chan:-1004338264708")],
-            [InlineKeyboardButton("📺🔞 KENYAN PORN⛔", callback_data="chan:-1004338264708")],
-            [InlineKeyboardButton("💎 ALL OF THE ABOVE❤️💎", callback_data="chan:999999")],
-            [InlineKeyboardButton("👤 My Account", callback_data="nav_account"), InlineKeyboardButton("💬 Help Support", url=f"https://t.me{settings.support_admin_username}")]
+         # 🌟 STEP-TRACKING GRID INTERFACE LAYOUT
+    keyboard = [
+        [InlineKeyboardButton("📺❤️ SOMALIA PORN❤️", callback_data="chan:-1004338264708")],
+        [InlineKeyboardButton("❤️ EXPOSEE💦📺", callback_data="chan:-1004338264708:ch2")],
+        [InlineKeyboardButton("📺 TRENDING LEAKS🔞💦", callback_data="chan:-1004338264708:ch3")],
+        [InlineKeyboardButton("📺🔞 KENYAN PORN⛔", callback_data="chan:-1004338264708:ch4")],
+        [InlineKeyboardButton("💎 ALL OF THE ABOVE❤️💎", callback_data="chan:999999")],
+        [
+            InlineKeyboardButton("👤 My Account", callback_data="nav_account"),
+            InlineKeyboardButton("💬 Help Support", url=f"https://t.me{settings.support_admin_username}")
         ]
+    ]
         await query.edit_message_text(text="Select an independent Premium Channel or choose the **All-Access Bundle** to proceed: 👇", reply_markup=InlineKeyboardMarkup(keyboard))
         return SELECTING_CHANNEL
 
