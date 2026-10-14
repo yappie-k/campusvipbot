@@ -55,7 +55,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     async with session_scope() as session:
         await upsert_user(session, user.id, user.username, user.first_name)
 
-    # 🌟 CORE TRACKED WALK THROUGH GRID MENUS
+    # 🌟 MAIN PORTAL ACCESS INTERFACE GRID
     keyboard = [
         [InlineKeyboardButton("📺❤️ SOMALIA PORN❤️", callback_data="chan:ch1")],
         [InlineKeyboardButton("❤️ EXPOSEE💦📺", callback_data="chan:ch2")],
@@ -92,7 +92,7 @@ async def view_account_profile(query) -> None:
     else:
         profile_text += "✅ You currently have active access to premium channels.\n\n"
         for sub in active_subs:
-            profile_text += f"▪️ Subscription Plan: `{sub.plan_code}`\n   ⏱️ Expires: `{_format_expiry(sub.expires_at)}`\n\n"
+            profile_text += f"▪️ Subscription Plan: `{sub.plan_code.upper()}`\n   ⏱️ Expires: `{_format_expiry(sub.expires_at)}`\n\n"
             
     keyboard = [[InlineKeyboardButton("⬅️ Back to Main Menu", callback_data="nav_home")]]
     await query.edit_message_text(text=profile_text, parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(keyboard))
@@ -108,7 +108,7 @@ async def channel_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await view_account_profile(query)
         return SELECTING_CHANNEL
 
-    # Separate out the chan prefix token
+    # 🌟 FIXED: Flatten list array directly to a clean string string token using [1]
     target = query.data.split(":", 1)[1]
     
     # 🌟 CORE IMAGE MATCHED PRICING ROUTER
@@ -184,6 +184,7 @@ async def plan_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         await query.edit_message_text(text="Select an independent Premium Channel or choose the **All-Access Bundle** to proceed: 👇", reply_markup=InlineKeyboardMarkup(keyboard))
         return SELECTING_CHANNEL
 
+    # 🌟 FIXED: Flatten list array directly to a clean string string token using [1]
     code = query.data.split(":", 1)[1]
     context.user_data["plan_code"] = code
     hint = ""
@@ -221,7 +222,6 @@ async def receive_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     if phone is None:
         await message.reply_text("Invalid structure format. Supply a valid Kenyan mobile line number:")
         return AWAITING_PHONE
-
     await message.reply_text(f"🔄 Dispatched an M-Pesa push prompt token to screen {mask_msisdn(phone)}. Complete authorization by keying in your PIN code.")
     try:
         amount_lookup = {
