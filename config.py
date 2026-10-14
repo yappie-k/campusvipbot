@@ -1,4 +1,4 @@
-"""System settings parser handling nested multi-channel data dictionaries."""
+"""System settings parser handling nested multi-channel data configurations."""
 from __future__ import annotations
 import os
 import json
@@ -33,26 +33,29 @@ class Settings:
         self.invite_link_ttl_hours: int = int(os.getenv("INVITE_LINK_TTL_HOURS", 24))
         self.stk_reconcile_after_seconds: int = int(os.getenv("STK_RECONCILE_AFTER_SECONDS", 120))
 
-        # 🌟 Maps multiple channel identifiers and pricing keys cleanly into memory lookups
+        # 🌟 FIXED ARCHITECTURE: Handles the list/array processing loops natively
         self.channels: dict[int, str] = {}
         self.plans: dict[str, Plan] = {}
         
         try:
             raw_json = os.getenv("PLANS_JSON", "[]")
             parsed_data = json.loads(raw_json)
-            for ch in parsed_data:
-                c_id = int(ch["channel_id"])
-                self.channels[c_id] = ch["channel_name"]
-                for p in ch["plans"]:
-                    self.plans[p["code"]] = Plan(
-                        code=p["code"],
-                        name=p["name"],
-                        days=p["days"],
-                        amount=p["amount"],
-                        channel_id=c_id
-                    )
-        except Exception:
-            pass
+            
+            # Ensures we parse the list items correctly
+            if isinstance(parsed_data, list):
+                for ch in parsed_data:
+                    c_id = int(ch["channel_id"])
+                    self.channels[c_id] = ch["channel_name"]
+                    for p in ch["plans"]:
+                        self.plans[p["code"]] = Plan(
+                            code=p["code"],
+                            name=p["name"],
+                            days=p["days"],
+                            amount=p["amount"],
+                            channel_id=c_id
+                        )
+        except Exception as e:
+            print(f"JSON Parsing configuration error trace: {e}")
 
     def plan_by_code(self, code: str) -> Plan | None:
         return self.plans.get(code)
