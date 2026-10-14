@@ -55,12 +55,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     async with session_scope() as session:
         await upsert_user(session, user.id, user.username, user.first_name)
 
-    # 🌟 CORE FIXED INTERFACE BUTTONS GRID MATRIX
+    # 🌟 FIXED BUTTON CALLOUT VALUES: Straight tags so the engine can differentiate buttons instantly
     keyboard = [
-        [InlineKeyboardButton("📺❤️ SOMALIA PORN❤️", callback_data="chan:-1004338264708")],
-        [InlineKeyboardButton("❤️ EXPOSEE💦📺", callback_data="chan:-1004338264708")],
-        [InlineKeyboardButton("📺 TRENDING LEAKS🔞💦", callback_data="chan:-1004338264708")],
-        [InlineKeyboardButton("📺🔞 KENYAN PORN⛔", callback_data="chan:-1004338264708")],
+        [InlineKeyboardButton("📺❤️ SOMALIA PORN❤️", callback_data="chan:ch1")],
+        [InlineKeyboardButton("❤️ EXPOSEE💦📺", callback_data="chan:ch2")],
+        [InlineKeyboardButton("📺 TRENDING LEAKS🔞💦", callback_data="chan:ch3")],
+        [InlineKeyboardButton("📺🔞 KENYAN PORN⛔", callback_data="chan:ch4")],
         [InlineKeyboardButton("💎 ALL OF THE ABOVE❤️💎", callback_data="chan:999999")],
         [
             InlineKeyboardButton("👤 My Account", callback_data="nav_account"),
@@ -89,12 +89,11 @@ async def channel_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await view_account_profile(query)
         return SELECTING_CHANNEL
 
-    # Dynamic pricing mapping profile cards
-    target_data = query.data.split(":", 1)[1]
+    # Separate out the chan prefix token
+    target = query.data.split(":", 1)[1]
     
-    # 🌟 IMAGES-MATCHED PRICING ROUTER MACHINE
-    if target_data == "999999":
-        # 💎 ALL OF THE ABOVE❤️💎
+    # 🌟 CORE IMAGE MATCHED PRICING ROUTER 
+    if target == "999999":
         context.user_data["target_channel_id"] = 999999
         rows = [
             [InlineKeyboardButton("📅 1 Week — 7 days | 499 KSHS", callback_data="plan:bun_1w")],
@@ -102,8 +101,7 @@ async def channel_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             [InlineKeyboardButton("📅 3 MONTHS — 90 days | 1999 KSHS", callback_data="plan:bun_3m")],
             [InlineKeyboardButton("📅 LIFETIME | 2499 KSHS", callback_data="plan:bun_lt")]
         ]
-    elif "SOMALIA" in query.message.text or target_data == "-1004338264708" and context.user_data.get("last_click") == "ch1":
-        # 📺❤️ SOMALIA PORN❤️
+    elif target == "ch1":
         context.user_data["target_channel_id"] = -1004338264708
         rows = [
             [InlineKeyboardButton("📅 1 Week — 7 days | 199 KSHS", callback_data="plan:ch1_1w")],
@@ -111,8 +109,7 @@ async def channel_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             [InlineKeyboardButton("📅 3 MONTHS — 90 days | 999 KSHS", callback_data="plan:ch1_3m")],
             [InlineKeyboardButton("📅 LIFETIME | 1299 KSHS", callback_data="plan:ch1_lt")]
         ]
-    elif context.user_data.get("last_click") == "ch2":
-        # ❤️ EXPOSEE💦📺
+    elif target == "ch2":
         context.user_data["target_channel_id"] = -1004338264708
         rows = [
             [InlineKeyboardButton("📅 1 Week — 7 days | 399 KSHS", callback_data="plan:ch2_1w")],
@@ -120,8 +117,7 @@ async def channel_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             [InlineKeyboardButton("📅 3 MONTHS — 90 days | 999 KSHS", callback_data="plan:ch2_3m")],
             [InlineKeyboardButton("📅 LIFETIME | 1499 KSHS", callback_data="plan:ch2_lt")]
         ]
-    elif context.user_data.get("last_click") == "ch4":
-        # 📺🔞 KENYAN PORN⛔
+    elif target == "ch4":
         context.user_data["target_channel_id"] = -1004338264708
         rows = [
             [InlineKeyboardButton("📅 1 Week — 7 days | 199 KSHS", callback_data="plan:ch4_1w")],
@@ -130,7 +126,7 @@ async def channel_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             [InlineKeyboardButton("📅 LIFETIME | 1499 KSHS", callback_data="plan:ch4_lt")]
         ]
     else:
-        # 📺 TRENDING LEAKS🔞💦 (Fallback Default)
+        # Default target fallback (📺 TRENDING LEAKS🔞💦)
         context.user_data["target_channel_id"] = -1004338264708
         rows = [
             [InlineKeyboardButton("📅 1 Week — 7 days | 399 KSHS", callback_data="plan:ch3_1w")],
@@ -150,24 +146,6 @@ async def channel_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     return SELECTING_PLAN
 
 
-async def view_account_profile(query) -> None:
-    user_id = query.from_user.id
-    
-    async with session_scope() as session:
-        active_subs = await get_all_user_subscriptions(session, user_id)
-        
-    profile_text = "👤 **YOUR MEMBERSHIP ACCOUNT PROFILE**\n\n"
-    if not active_subs:
-        profile_text += "❌ You do not have any active Premium Subscriptions at the moment."
-    else:
-        profile_text += "✅ You currently have active access to premium channels.\n\n"
-        for sub in active_subs:
-            profile_text += f"▪️ Subscription Plan: `{sub.plan_code}`\n   ⏱️ Expires: `{_format_expiry(sub.expires_at)}`\n\n"
-            
-    keyboard = [[InlineKeyboardButton("⬅️ Back to Main Menu", callback_data="nav_home")]]
-    await query.edit_message_text(text=profile_text, parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(keyboard))
-
-
 async def plan_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     if query is None or query.data is None:
@@ -177,10 +155,10 @@ async def plan_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     if query.data == "nav_home":
         settings = get_settings()
         keyboard = [
-            [InlineKeyboardButton("📺❤️ SOMALIA PORN❤️", callback_data="chan:-1004338264708")],
-            [InlineKeyboardButton("❤️ EXPOSEE💦📺", callback_data="chan:-1004338264708:ch2")],
-            [InlineKeyboardButton("📺 TRENDING LEAKS🔞💦", callback_data="chan:-1004338264708:ch3")],
-            [InlineKeyboardButton("📺🔞 KENYAN PORN⛔", callback_data="chan:-1004338264708:ch4")],
+            [InlineKeyboardButton("📺❤️ SOMALIA PORN❤️", callback_data="chan:ch1")],
+            [InlineKeyboardButton("❤️ EXPOSEE💦📺", callback_data="chan:ch2")],
+            [InlineKeyboardButton("📺 TRENDING LEAKS🔞💦", callback_data="chan:ch3")],
+            [InlineKeyboardButton("📺🔞 KENYAN PORN⛔", callback_data="chan:ch4")],
             [InlineKeyboardButton("💎 ALL OF THE ABOVE❤️💎", callback_data="chan:999999")],
             [InlineKeyboardButton("👤 My Account", callback_data="nav_account"), InlineKeyboardButton("💬 Help Support", url=f"https://t.me{settings.support_admin_username}")]
         ]
@@ -198,19 +176,13 @@ async def plan_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
                 hint = f"\nLast number on file: `{mask_msisdn(db_user.phone)}`"
 
     await query.edit_message_text(
-        f"Selected Pack Reference: *{code}*\n\n"
+        f"Selected Pack Reference: *{code.upper()}*\n\n"
         "Please enter your M-Pesa phone number to trigger your checkout STK Push prompt screen.\n"
         "Accepted format examples: `0712345678` or `254712345678`."
         f"{hint}\n\nSend /cancel to close menu.",
         parse_mode=ParseMode.MARKDOWN,
     )
     return AWAITING_PHONE
-
-async def receive_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    message = update.message
-    user = update.effective_user
-    if message is None or user is None or message.text is None:
-        return AWAITING_PHONE
 
     plan_code = context.user_data.get("plan_code")
     channel_id = context.user_data.get("target_channel_id")
