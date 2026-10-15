@@ -55,8 +55,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     async with session_scope() as session:
         await upsert_user(session, user.id, user.username, user.first_name)
 
+    # 🌟 CORE FIXED INTERFACE BUTTONS GRID MATRIX (Unchanged)
     keyboard = [
-        [InlineKeyboardButton("📺❤️ SOMALIA PORN❤️", callback_data="chan:ch1")],
+        [InlineKeyboardButton("📺❤️ SOMALI PORN❤️", callback_data="chan:ch1")],
         [InlineKeyboardButton("❤️ EXPOSEE💦📺", callback_data="chan:ch2")],
         [InlineKeyboardButton("📺 TRENDING LEAKS🔞💦", callback_data="chan:ch3")],
         [InlineKeyboardButton("📺🔞 KENYAN PORN⛔", callback_data="chan:ch4")],
@@ -68,15 +69,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_text(
-        f"Hello {user_name}\n"
-        "🔥 **WELCOME TO SABLENYA HUB VIP ACCESS MASTER PORTAL** ❤️\n\n"
-        "Select an independent Premium Channel or choose the **All-Access Bundle** to instantly unlock all communities at a massive discount! 👇",
+    # 🌟 NEW ADDITION: Your official Sablenya VIP brand image banner asset
+    welcome_banner_url = "https://i.ibb.co/ZRkZwSXC/photo-5817979424224251619-x.jpg"
+
+    await update.message.reply_photo(
+        photo=welcome_banner_url,
+        caption=(
+            f"Hello {user_name}\n"
+            "🔥 **WELCOME TO SABLENYAVIPs  MASTER ACCESS PORTAL** ❤️\n\n"
+            "Select Premium Channel or choose the **ALL OF THE ABOVE** to instantly unlock all communities at a massive discount! 👇"
+        ),
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=reply_markup
     )
     return SELECTING_CHANNEL
-
 
 async def view_account_profile(query) -> None:
     user_id = query.from_user.id
@@ -169,7 +175,7 @@ async def plan_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     if query.data == "nav_home":
         settings = get_settings()
         keyboard = [
-            [InlineKeyboardButton("📺❤️ SOMALIA PORN❤️", callback_data="chan:ch1")],
+            [InlineKeyboardButton("📺❤️ SOMALI PORN❤️", callback_data="chan:ch1")],
             [InlineKeyboardButton("❤️ EXPOSEE💦📺", callback_data="chan:ch2")],
             [InlineKeyboardButton("📺 TRENDING LEAKS🔞💦", callback_data="chan:ch3")],
             [InlineKeyboardButton("📺🔞 KENYAN PORN⛔", callback_data="chan:ch4")],
