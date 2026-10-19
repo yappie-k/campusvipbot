@@ -14,8 +14,9 @@ _scheduler = AsyncIOScheduler()
 async def expire_subscriptions_job():
     """Identifies elapsed member access boundaries and kicks them out from the premium channel."""
     settings = get_settings()
-    now = datetime.now(timezone.utc)
-    
+    # DB columns are naive UTC; comparing against an aware datetime fails on Postgres (asyncpg).
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+
     from telegram import Bot
     from telegram.error import TelegramError
 

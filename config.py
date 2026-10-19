@@ -7,6 +7,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+LIFETIME_DAYS = 36500
+# Plan codes look like "ch1_1w", "ch3_lt", "bun_1m": the suffix is the duration.
+SUFFIX_DAYS = {"1w": 7, "1m": 30, "3m": 90, "lt": LIFETIME_DAYS}
+
 @dataclass
 class Plan:
     code: str
@@ -24,7 +28,9 @@ class Settings:
         self.http_port: int = int(os.getenv("HTTP_PORT", 10000))
         self.callback_base_url: str = os.getenv("CALLBACK_BASE_URL", "").rstrip("/")
         self.support_admin_username: str = os.getenv("SUPPORT_ADMIN_USERNAME", "CampusVIP_Admin")
-        
+        # Every menu button currently grants access to this one channel.
+        self.main_channel_id: int = int(os.getenv("MAIN_CHANNEL_ID", "-1004338264708"))
+
         self.megapay_api_key: str = os.getenv("MEGAPAY_API_KEY", "")
         self.megapay_email: str = os.getenv("MEGAPAY_EMAIL", "")
         
@@ -58,6 +64,13 @@ class Settings:
 
     def plan_by_code(self, code: str) -> Plan | None:
         return self.plans.get(code)
+
+    def plan_days(self, code: str) -> int:
+        """Access length for a plan code. PLANS_JSON wins; otherwise the code suffix decides."""
+        plan = self.plans.get(code)
+        if plan:
+            return plan.days
+        return SUFFIX_DAYS.get(code.rsplit("_", 1)[-1], 30)
 
 _settings = Settings()
 def get_settings() -> Settings:

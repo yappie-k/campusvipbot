@@ -112,25 +112,21 @@ async def activate_subscription_from_payment(session: AsyncSession, payment: Pay
         user.phone = payment.phone
 
     settings = get_settings()
-    plan = settings.plan_by_code(payment.plan_code)
-    days = plan.days if plan else 30
-    now = datetime.datetime.utcnow()
-    expires_at = now + datetime.timedelta(days=days)
+    days = settings.plan_days(payment.plan_code)
+    expires_at = datetime.datetime.utcnow() + datetime.timedelta(days=days)
 
-    created_subs = []
-    # 👑 Bundle Trigger Flag (999999 means 'All Access' was purchased)
-    if payment.channel_id == 999999:
-        for target_ch_id in settings.channels.keys():
-            if target_ch_id != 999999:
-                sub = Subscription(user_id=payment.telegram_id, channel_id=target_ch_id, plan_code=payment.plan_code, status="active", expires_at=expires_at)
-                session.add(sub)
-                created_subs.append(sub)
-    else:
-        sub = Subscription(user_id=payment.telegram_id, channel_id=payment.channel_id, plan_code=payment.plan_code, status="active", expires_at=expires_at)
-        session.add(sub)
-        created_subs.append(sub)
-        
-    return created_subs
+    # Every product (single channel buttons and the bundle) maps to the one real channel.
+    # 999999 is the legacy bundle marker that older pending payments may still carry.
+    channel_id = settings.main_channel_id if payment.channel_id == 999999 else payment.channel_id
+    sub = Subscription(
+        user_id=payment.telegram_id,
+        channel_id=channel_id,
+        plan_code=payment.plan_code,
+        status="active",
+        expires_at=expires_at,
+    )
+    session.add(sub)
+    return [sub]
 
 async def init_db() -> None:
     async with engine.begin() as conn:

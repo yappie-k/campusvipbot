@@ -31,6 +31,8 @@ async def mpesa_webhook(request: Request):
         payment = await get_payment_by_checkout(session, checkout_id)
         if not payment:
             return {"status": "ignored"}
+        if payment.status == "completed":
+            return {"status": "duplicate"}  # gateway retried the callback; already fulfilled
 
         if result_code == 0:
             # Payment Succeeded
