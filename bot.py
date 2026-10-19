@@ -269,7 +269,12 @@ def build_application() -> Application:
                 CallbackQueryHandler(plan_selected, pattern=r"^plan:"),
                 CallbackQueryHandler(plan_selected, pattern=r"^nav_home")
             ],
-            AWAITING_PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_phone)],
+                        # 🌟 FIXED STATE: If they send a command like /start, it escapes the phone entry window instantly
+            AWAITING_PHONE: [
+                CommandHandler("start", start),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, receive_phone)
+            ],
+
         },
         fallbacks=[CommandHandler("cancel", cancel)],
         per_message=False
